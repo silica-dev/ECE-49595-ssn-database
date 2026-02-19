@@ -1,0 +1,38 @@
+<!doctype html>
+
+<head>
+    <title>Register | SSN Database</title>
+    <script src="https://cdn.jsdelivr.net/npm/@zxcvbn-ts/core@2.0.0/dist/zxcvbn-ts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@zxcvbn-ts/language-common@2.0.0/dist/zxcvbn-ts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@zxcvbn-ts/language-en@2.0.0/dist/zxcvbn-ts.js"></script>
+    <link rel="stylesheet" href="/static/register.css" />
+    <script src="/static/strength-check.js"></script>
+</head>
+
+<body>
+    {% if message is defined %}
+    <p>An error occurred: {{ message }}</p>
+    {% endif %}
+    <form action="register" name="register" method="post" onsubmit="return validate_account_info();">
+        <label for="username">Username:</label><br />
+        <input type="text" required="true" id="username" name="username" /><br />
+
+        <label for="password">Password:</label><br />
+        <input type="password" required="true" id="password" name="password" oninput="update_check()" /><br />
+        <label for="ssn">Social Security #:</label><br />
+        <input type="number" id="ssn" required="true" name="ssn" /><br />
+        <input type="submit" />
+    </form>
+    <p>Password Strength:</p>
+    <div class="wrapper">
+        <div class="green" id="passwd-strength"></div>
+    </div>
+    <p>Password must contain:</p>
+    <ul>
+        <li>at least 8 character</li>
+        <li>at most 128 characters</li>
+    </ul>
+    <script>
+        initialize_checker();
+    </script>
+</body>

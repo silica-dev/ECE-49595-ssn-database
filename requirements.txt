@@ -1,0 +1,4 @@
+flask
+pyargon2
+requests
+pyotp

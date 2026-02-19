@@ -1,0 +1,12 @@
+.wrapper {
+    display: flex;
+    height: 10px;
+    background-color: red;
+    width: 25%;
+    margin-bottom: 20px;
+}
+
+.green {
+    flex: 0;
+    background-color: green;
+}
