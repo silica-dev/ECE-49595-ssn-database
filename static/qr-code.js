@@ -1,9 +1,9 @@
 var qrcode = require("qrcode");
 
-function draw_otp_code() {
-  var canvas = document.getElementById("canvas");
+function draw_otp_code(code) {
+  var canvas = document.getElementById("qr-code");
 
-  qrcode.toCanvas(canvas, "OTP QR Code", function (error) {
+  qrcode.toCanvas(canvas, code, function (error) {
     if (error) console.error(error);
     console.log("success!");
   });

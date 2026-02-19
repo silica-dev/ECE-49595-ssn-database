@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | SSN Database</title>
+</head>
+
+<body>
+    {% if message is defined %}
+    <p>An error occurred: {{ message }}</p>
+    {% endif %}
+    <form action="login" name="login" method="post">
+        <label for="username">Username:</label><br />
+        <input type="text" required="true" id="username" name="username" /><br />
+
+        <label for="password">Password:</label><br />
+        <input type="password" required="true" id="password" name="password" /><br />
+        <label for="otp">One-Time Password:</label><br />
+        <input type="text" required="true" id="otp" name="otp"><br />
+        <input type="submit" value="Log In" />
+
+</body>
+
+</html>

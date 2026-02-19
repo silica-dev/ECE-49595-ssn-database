@@ -2,3 +2,5 @@ flask
 pyargon2
 requests
 pyotp
+flask-jwt-extended
+dotenv

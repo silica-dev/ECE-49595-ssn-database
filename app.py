@@ -1,27 +1,74 @@
 from flask import Flask, render_template, request
+from flask_jwt_extended import JWTManager
+from datetime import timedelta
 import pyargon2, string
 from sqlite3 import Connection
 from hashlib import sha1
 import requests, uuid
 import random
-import pyotp
+import pyotp, dotenv, os
+
+_ = dotenv.load_dotenv()
+
+ACCESS_EXPIRES = timedelta(hours=1)
 
 app = Flask(__name__)
+app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_KEY", "please_change_this")
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = ACCESS_EXPIRES
+app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+jwt = JWTManager(app)
+
+
+def passwd_hash(password: str, salt: str):
+    return pyargon2.hash(
+        password=password, salt=salt, time_cost=1, memory_cost=47104, parallelism=1
+    )
 
 
 @app.route("/")
 def index():
+
     return render_template("index.html")
 
 
 @app.get("/login")
 def login_form():
-    return "get login page"
+    return render_template("login.html")
 
 
 @app.post("/login")
 def login():
-    return "do the login"
+    login_fail = False
+    username = request.form["username"]
+    password = request.form["password"]
+    otp = request.form["otp"]
+    con = Connection("users.db")
+    cur = con.cursor()
+    cur = cur.execute("SELECT * FROM users WHERE username == ?", (username,))
+    user_info = cur.fetchall()
+    if len(user_info) == 0:
+        login_fail = True
+        user_hash: str = ""
+        user_salt: str = ""
+        user_secret: str = pyotp.random_base32()
+    else:
+        user_hash: str = user_info[0][3]
+        user_salt: str = user_info[0][5]
+        user_secret: str = user_info[0][4]
+
+    challenging_hash = passwd_hash(password, user_salt)
+    if challenging_hash != user_hash:
+        login_fail = True
+
+    mfa = pyotp.totp.TOTP(s=user_secret)
+    if not mfa.verify(otp):
+        login_fail = True
+
+    if login_fail:
+        return render_template(
+            "login.html", message="Invalid username, password, or 2FA code"
+        )
+    return "login successful!!!!!"
 
 
 @app.get("/register")
@@ -62,14 +109,16 @@ def register():
 
     # actually store info
     salt = "".join(random.choices(string.printable, k=16))
-    hashword = pyargon2.hash(
-        password=password, salt=salt, time_cost=1, memory_cost=47104, parallelism=1
-    )
+    hashword = passwd_hash(password, salt)
 
     user_id = uuid.uuid4().bytes
 
     # otp setup
     otp_secret = pyotp.random_base32()
+
+    url = pyotp.totp.TOTP(otp_secret).provisioning_uri(
+        name=f"{username}", issuer_name="SSN Database"
+    )
 
     cur = cur.execute(
         "INSERT INTO users(id, username, ssn, passhash, otp_secret, salt) VALUES (?, ?, ?, ?, ?, ?)",
@@ -77,7 +126,7 @@ def register():
     )
     con.commit()
     con.close()
-    return render_template("otp_setup.html")
+    return render_template("otp_setup.html", otp_uri=url, otp_secret=otp_secret)
 
 
 if __name__ == "__main__":

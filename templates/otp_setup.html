@@ -5,8 +5,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OTP Setup | SSN Database</title>
+    <script src="/static/qr-bundle.js"></script>
+    <script src="/static/qr-code.js"></script>
 </head>
 
-<body></body>
+<body>
+    <h1>Two-Factor Authentication Setup</h1>
+    <canvas id="qr-code"></canvas>
+    <script>
+        draw_otp_code("{{ otp_uri }}");
+    </script>
+    <p>
+        Scan the QR code to add the one-time-password to your authenticator app.
+        Then, log in below to ensure it functions properly
+    </p>
+    <p>Alternatively, add the following code to the app: {{ otp_secret }}</p>
+    <form action="/login">
+        <input type="submit" value="To Login Page" />
+    </form>
+</body>
 
 </html>

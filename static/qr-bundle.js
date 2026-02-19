@@ -1,4 +1,4 @@
-(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+require=(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 'use strict';
 
 /******************************************************************************
@@ -166,84 +166,6 @@ if (typeof module !== 'undefined') {
 }
 
 },{}],2:[function(require,module,exports){
-
-const canPromise = require('./can-promise')
-
-const QRCode = require('./core/qrcode')
-const CanvasRenderer = require('./renderer/canvas')
-const SvgRenderer = require('./renderer/svg-tag.js')
-
-function renderCanvas (renderFunc, canvas, text, opts, cb) {
-  const args = [].slice.call(arguments, 1)
-  const argsNum = args.length
-  const isLastArgCb = typeof args[argsNum - 1] === 'function'
-
-  if (!isLastArgCb && !canPromise()) {
-    throw new Error('Callback required as last argument')
-  }
-
-  if (isLastArgCb) {
-    if (argsNum < 2) {
-      throw new Error('Too few arguments provided')
-    }
-
-    if (argsNum === 2) {
-      cb = text
-      text = canvas
-      canvas = opts = undefined
-    } else if (argsNum === 3) {
-      if (canvas.getContext && typeof cb === 'undefined') {
-        cb = opts
-        opts = undefined
-      } else {
-        cb = opts
-        opts = text
-        text = canvas
-        canvas = undefined
-      }
-    }
-  } else {
-    if (argsNum < 1) {
-      throw new Error('Too few arguments provided')
-    }
-
-    if (argsNum === 1) {
-      text = canvas
-      canvas = opts = undefined
-    } else if (argsNum === 2 && !canvas.getContext) {
-      opts = text
-      text = canvas
-      canvas = undefined
-    }
-
-    return new Promise(function (resolve, reject) {
-      try {
-        const data = QRCode.create(text, opts)
-        resolve(renderFunc(data, canvas, opts))
-      } catch (e) {
-        reject(e)
-      }
-    })
-  }
-
-  try {
-    const data = QRCode.create(text, opts)
-    cb(null, renderFunc(data, canvas, opts))
-  } catch (e) {
-    cb(e)
-  }
-}
-
-exports.create = QRCode.create
-exports.toCanvas = renderCanvas.bind(null, CanvasRenderer.render)
-exports.toDataURL = renderCanvas.bind(null, CanvasRenderer.renderToDataURL)
-
-// only svg for now.
-exports.toString = renderCanvas.bind(null, function (data, _, opts) {
-  return SvgRenderer.render(data, opts)
-})
-
-},{"./can-promise":3,"./core/qrcode":19,"./renderer/canvas":26,"./renderer/svg-tag.js":27}],3:[function(require,module,exports){
 // can-promise has a crash in some versions of react native that dont have
 // standard global objects
 // https://github.com/soldair/node-qrcode/issues/157
@@ -252,7 +174,7 @@ module.exports = function () {
   return typeof Promise === 'function' && Promise.prototype && Promise.prototype.then
 }
 
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 /**
  * Alignment pattern are fixed reference pattern in defined positions
  * in a matrix symbology, which enables the decode software to re-synchronise
@@ -337,7 +259,7 @@ exports.getPositions = function getPositions (version) {
   return coords
 }
 
-},{"./utils":23}],5:[function(require,module,exports){
+},{"./utils":22}],4:[function(require,module,exports){
 const Mode = require('./mode')
 
 /**
@@ -398,7 +320,7 @@ AlphanumericData.prototype.write = function write (bitBuffer) {
 
 module.exports = AlphanumericData
 
-},{"./mode":16}],6:[function(require,module,exports){
+},{"./mode":15}],5:[function(require,module,exports){
 function BitBuffer () {
   this.buffer = []
   this.length = 0
@@ -437,7 +359,7 @@ BitBuffer.prototype = {
 
 module.exports = BitBuffer
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /**
  * Helper class to handle QR Code symbol modules
  *
@@ -504,7 +426,7 @@ BitMatrix.prototype.isReserved = function (row, col) {
 
 module.exports = BitMatrix
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 const Mode = require('./mode')
 
 function ByteData (data) {
@@ -536,7 +458,7 @@ ByteData.prototype.write = function (bitBuffer) {
 
 module.exports = ByteData
 
-},{"./mode":16}],9:[function(require,module,exports){
+},{"./mode":15}],8:[function(require,module,exports){
 const ECLevel = require('./error-correction-level')
 
 const EC_BLOCKS_TABLE = [
@@ -673,7 +595,7 @@ exports.getTotalCodewordsCount = function getTotalCodewordsCount (version, error
   }
 }
 
-},{"./error-correction-level":10}],10:[function(require,module,exports){
+},{"./error-correction-level":9}],9:[function(require,module,exports){
 exports.L = { bit: 1 }
 exports.M = { bit: 0 }
 exports.Q = { bit: 3 }
@@ -725,7 +647,7 @@ exports.from = function from (value, defaultValue) {
   }
 }
 
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 const getSymbolSize = require('./utils').getSymbolSize
 const FINDER_PATTERN_SIZE = 7
 
@@ -749,7 +671,7 @@ exports.getPositions = function getPositions (version) {
   ]
 }
 
-},{"./utils":23}],12:[function(require,module,exports){
+},{"./utils":22}],11:[function(require,module,exports){
 const Utils = require('./utils')
 
 const G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0)
@@ -780,7 +702,7 @@ exports.getEncodedBits = function getEncodedBits (errorCorrectionLevel, mask) {
   return ((data << 10) | d) ^ G15_MASK
 }
 
-},{"./utils":23}],13:[function(require,module,exports){
+},{"./utils":22}],12:[function(require,module,exports){
 const EXP_TABLE = new Uint8Array(512)
 const LOG_TABLE = new Uint8Array(256)
 /**
@@ -851,7 +773,7 @@ exports.mul = function mul (x, y) {
   return EXP_TABLE[LOG_TABLE[x] + LOG_TABLE[y]]
 }
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 const Mode = require('./mode')
 const Utils = require('./utils')
 
@@ -907,7 +829,7 @@ KanjiData.prototype.write = function (bitBuffer) {
 
 module.exports = KanjiData
 
-},{"./mode":16,"./utils":23}],15:[function(require,module,exports){
+},{"./mode":15,"./utils":22}],14:[function(require,module,exports){
 /**
  * Data mask pattern reference
  * @type {Object}
@@ -1143,7 +1065,7 @@ exports.getBestMask = function getBestMask (data, setupFormatFunc) {
   return bestPattern
 }
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 const VersionCheck = require('./version-check')
 const Regex = require('./regex')
 
@@ -1312,7 +1234,7 @@ exports.from = function from (value, defaultValue) {
   }
 }
 
-},{"./regex":21,"./version-check":24}],17:[function(require,module,exports){
+},{"./regex":20,"./version-check":23}],16:[function(require,module,exports){
 const Mode = require('./mode')
 
 function NumericData (data) {
@@ -1357,7 +1279,7 @@ NumericData.prototype.write = function write (bitBuffer) {
 
 module.exports = NumericData
 
-},{"./mode":16}],18:[function(require,module,exports){
+},{"./mode":15}],17:[function(require,module,exports){
 const GF = require('./galois-field')
 
 /**
@@ -1421,7 +1343,7 @@ exports.generateECPolynomial = function generateECPolynomial (degree) {
   return poly
 }
 
-},{"./galois-field":13}],19:[function(require,module,exports){
+},{"./galois-field":12}],18:[function(require,module,exports){
 const Utils = require('./utils')
 const ECLevel = require('./error-correction-level')
 const BitBuffer = require('./bit-buffer')
@@ -1918,7 +1840,7 @@ exports.create = function create (data, options) {
   return createSymbol(data, version, errorCorrectionLevel, mask)
 }
 
-},{"./alignment-pattern":4,"./bit-buffer":6,"./bit-matrix":7,"./error-correction-code":9,"./error-correction-level":10,"./finder-pattern":11,"./format-info":12,"./mask-pattern":15,"./mode":16,"./reed-solomon-encoder":20,"./segments":22,"./utils":23,"./version":25}],20:[function(require,module,exports){
+},{"./alignment-pattern":3,"./bit-buffer":5,"./bit-matrix":6,"./error-correction-code":8,"./error-correction-level":9,"./finder-pattern":10,"./format-info":11,"./mask-pattern":14,"./mode":15,"./reed-solomon-encoder":19,"./segments":21,"./utils":22,"./version":24}],19:[function(require,module,exports){
 const Polynomial = require('./polynomial')
 
 function ReedSolomonEncoder (degree) {
@@ -1976,7 +1898,7 @@ ReedSolomonEncoder.prototype.encode = function encode (data) {
 
 module.exports = ReedSolomonEncoder
 
-},{"./polynomial":18}],21:[function(require,module,exports){
+},{"./polynomial":17}],20:[function(require,module,exports){
 const numeric = '[0-9]+'
 const alphanumeric = '[A-Z $%*+\\-./:]+'
 let kanji = '(?:[u3000-u303F]|[u3040-u309F]|[u30A0-u30FF]|' +
@@ -2009,7 +1931,7 @@ exports.testAlphanumeric = function testAlphanumeric (str) {
   return TEST_ALPHANUMERIC.test(str)
 }
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 const Mode = require('./mode')
 const NumericData = require('./numeric-data')
 const AlphanumericData = require('./alphanumeric-data')
@@ -2341,7 +2263,7 @@ exports.rawSplit = function rawSplit (data) {
   )
 }
 
-},{"./alphanumeric-data":5,"./byte-data":8,"./kanji-data":14,"./mode":16,"./numeric-data":17,"./regex":21,"./utils":23,"dijkstrajs":1}],23:[function(require,module,exports){
+},{"./alphanumeric-data":4,"./byte-data":7,"./kanji-data":13,"./mode":15,"./numeric-data":16,"./regex":20,"./utils":22,"dijkstrajs":1}],22:[function(require,module,exports){
 let toSJISFunction
 const CODEWORDS_COUNT = [
   0, // Not used
@@ -2406,7 +2328,7 @@ exports.toSJIS = function toSJIS (kanji) {
   return toSJISFunction(kanji)
 }
 
-},{}],24:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 /**
  * Check if QR Code version is valid
  *
@@ -2417,7 +2339,7 @@ exports.isValid = function isValid (version) {
   return !isNaN(version) && version >= 1 && version <= 40
 }
 
-},{}],25:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 const Utils = require('./utils')
 const ECCode = require('./error-correction-code')
 const ECLevel = require('./error-correction-level')
@@ -2582,7 +2504,7 @@ exports.getEncodedBits = function getEncodedBits (version) {
   return (version << 12) | d
 }
 
-},{"./error-correction-code":9,"./error-correction-level":10,"./mode":16,"./utils":23,"./version-check":24}],26:[function(require,module,exports){
+},{"./error-correction-code":8,"./error-correction-level":9,"./mode":15,"./utils":22,"./version-check":23}],25:[function(require,module,exports){
 const Utils = require('./utils')
 
 function clearCanvas (ctx, canvas, size) {
@@ -2647,7 +2569,7 @@ exports.renderToDataURL = function renderToDataURL (qrData, canvas, options) {
   return canvasEl.toDataURL(type, rendererOpts.quality)
 }
 
-},{"./utils":28}],27:[function(require,module,exports){
+},{"./utils":27}],26:[function(require,module,exports){
 const Utils = require('./utils')
 
 function getColorAttrib (color, attrib) {
@@ -2730,7 +2652,7 @@ exports.render = function render (qrData, options, cb) {
   return svgTag
 }
 
-},{"./utils":28}],28:[function(require,module,exports){
+},{"./utils":27}],27:[function(require,module,exports){
 function hex2rgba (hex) {
   if (typeof hex === 'number') {
     hex = hex.toString()
@@ -2831,16 +2753,82 @@ exports.qrToImageData = function qrToImageData (imgData, qr, opts) {
   }
 }
 
-},{}],29:[function(require,module,exports){
-var qrcode = require("qrcode");
+},{}],"qrcode":[function(require,module,exports){
 
-function draw_otp_code() {
-  var canvas = document.getElementById("canvas");
+const canPromise = require('./can-promise')
 
-  qrcode.toCanvas(canvas, "OTP QR Code", function (error) {
-    if (error) console.error(error);
-    console.log("success!");
-  });
+const QRCode = require('./core/qrcode')
+const CanvasRenderer = require('./renderer/canvas')
+const SvgRenderer = require('./renderer/svg-tag.js')
+
+function renderCanvas (renderFunc, canvas, text, opts, cb) {
+  const args = [].slice.call(arguments, 1)
+  const argsNum = args.length
+  const isLastArgCb = typeof args[argsNum - 1] === 'function'
+
+  if (!isLastArgCb && !canPromise()) {
+    throw new Error('Callback required as last argument')
+  }
+
+  if (isLastArgCb) {
+    if (argsNum < 2) {
+      throw new Error('Too few arguments provided')
+    }
+
+    if (argsNum === 2) {
+      cb = text
+      text = canvas
+      canvas = opts = undefined
+    } else if (argsNum === 3) {
+      if (canvas.getContext && typeof cb === 'undefined') {
+        cb = opts
+        opts = undefined
+      } else {
+        cb = opts
+        opts = text
+        text = canvas
+        canvas = undefined
+      }
+    }
+  } else {
+    if (argsNum < 1) {
+      throw new Error('Too few arguments provided')
+    }
+
+    if (argsNum === 1) {
+      text = canvas
+      canvas = opts = undefined
+    } else if (argsNum === 2 && !canvas.getContext) {
+      opts = text
+      text = canvas
+      canvas = undefined
+    }
+
+    return new Promise(function (resolve, reject) {
+      try {
+        const data = QRCode.create(text, opts)
+        resolve(renderFunc(data, canvas, opts))
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  try {
+    const data = QRCode.create(text, opts)
+    cb(null, renderFunc(data, canvas, opts))
+  } catch (e) {
+    cb(e)
+  }
 }
 
-},{"qrcode":2}]},{},[29]);
+exports.create = QRCode.create
+exports.toCanvas = renderCanvas.bind(null, CanvasRenderer.render)
+exports.toDataURL = renderCanvas.bind(null, CanvasRenderer.renderToDataURL)
+
+// only svg for now.
+exports.toString = renderCanvas.bind(null, function (data, _, opts) {
+  return SvgRenderer.render(data, opts)
+})
+
+},{"./can-promise":2,"./core/qrcode":18,"./renderer/canvas":25,"./renderer/svg-tag.js":26}]},{},[]);
