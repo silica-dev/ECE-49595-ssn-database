@@ -111,7 +111,10 @@ def login():
         user_salt: str = user_info[0][5]
         user_secret: str = user_info[0][4]
 
-    challenging_hash = passwd_hash(password, user_salt)
+    try:
+        challenging_hash = passwd_hash(password, user_salt)
+    except pyargon2.Argon2Error:
+        challenging_hash = ""
     if challenging_hash != user_hash:
         login_fail = True
 
@@ -171,7 +174,12 @@ def register():
 
     # actually store info
     salt = "".join(random.choices(string.printable, k=16))
-    hashword = passwd_hash(password, salt)
+    try:
+        hashword = passwd_hash(password, salt)
+    except pyargon2.Argon2Error:
+        return render_template(
+            "register.html", message="Username, password, or SSN invalid."
+        )
 
     user_id = uuid.uuid4().bytes
 
