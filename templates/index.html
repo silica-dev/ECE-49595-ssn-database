@@ -1,11 +1,20 @@
-<!DOCTYPE html>
+<!doctype html>
 
 <head>
     <title>SSN Database</title>
+    {% if username is defined %}
+    <script src="/static/logout.js"></script>
+    {% endif %}
 </head>
 
 <body>
+    {% if username is defined %}
+    <h1>Welcome, {{ username }}</h1>
+    <p>Your SSN: {{ ssn }}</p>
+    <button name="logout" onclick="logout()">Logout</button>
+    {% else %}
     <h1>Welcome</h1>
-    <a href="/login">Log in</a><br>
+    <a href="/login">Log in</a><br />
     <a href="/register">Register</a>
+    {% endif %}
 </body>

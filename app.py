@@ -1,12 +1,20 @@
-from flask import Flask, render_template, request
-from flask_jwt_extended import JWTManager
+from flask import Flask, redirect, render_template, request, url_for
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    get_jwt,
+    jwt_required,
+    get_current_user,
+    set_access_cookies,
+    unset_jwt_cookies,
+)
 from datetime import timedelta
 import pyargon2, string
 from sqlite3 import Connection
 from hashlib import sha1
 import requests, uuid
 import random
-import pyotp, dotenv, os
+import pyotp, dotenv, os, binascii
 
 _ = dotenv.load_dotenv()
 
@@ -15,7 +23,7 @@ ACCESS_EXPIRES = timedelta(hours=1)
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_KEY", "please_change_this")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = ACCESS_EXPIRES
-app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 jwt = JWTManager(app)
 
 
@@ -25,10 +33,57 @@ def passwd_hash(password: str, salt: str):
     )
 
 
-@app.route("/")
-def index():
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    res = redirect(url_for("login"))
+    unset_jwt_cookies(res)
+    return res
 
-    return render_template("index.html")
+
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    uuid = binascii.a2b_hex(jwt_data["sub"])
+    con = Connection("users.db")
+    cur = con.cursor()
+    cur.execute("SELECT * FROM users WHERE id == ?", (uuid,))
+    res = cur.fetchall()
+    if len(res) == 0:
+        return None
+    return res[0]
+
+
+@jwt.token_in_blocklist_loader
+def check_for_revoked_token(jwt_header, jwt_payload):
+    jti = jwt_payload["jti"]
+    con = Connection("tokens.db")
+    cur = con.cursor()
+    cur.execute("SELECT * FROM revoked_tokens WHERE jti == ?", (jti,))
+    res = cur.fetchall()
+    con.close()
+    return len(res) != 0
+
+
+@app.route("/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    con = Connection("tokens.db")
+    cur = con.cursor()
+    cur.execute("INSERT INTO revoked_tokens(jti) VALUES (?)", (jti,))
+    con.commit()
+    con.close()
+    res = redirect(url_for("index"))
+    unset_jwt_cookies(res)
+    return res
+
+
+@app.route("/")
+@jwt_required(optional=True)
+def index():
+    user = get_current_user()
+    if user is None:
+        return render_template("index.html")
+    return render_template("index.html", username=user[1], ssn=user[2])
 
 
 @app.get("/login")
@@ -68,7 +123,14 @@ def login():
         return render_template(
             "login.html", message="Invalid username, password, or 2FA code"
         )
-    return "login successful!!!!!"
+
+    # actually log in
+    access_token = create_access_token(
+        identity=binascii.b2a_hex(user_info[0][0]).decode("ascii")
+    )
+    resp = redirect(url_for("index"))
+    set_access_cookies(resp, access_token)
+    return resp
 
 
 @app.get("/register")
