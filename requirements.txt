@@ -4,3 +4,6 @@ requests
 pyotp
 flask-jwt-extended
 dotenv
+openai
+pydantic
+sqlalchemy

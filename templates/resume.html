@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Resume View</title>
+</head>
+
+<body>
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <p>an error occured:</p>
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %} {% endwith %}
+    <p>No Resume currently on file. Upload your resume below.</p>
+    <form method="POST" enctype="multipart/form-data" id="resume-upload">
+        <input type="file" name="resume" id="resume" />
+        <input type="submit" value="Upload Resume" />
+    </form>
+</body>
+
+<script src="/static/add_csrf_to_form.js"></script>
+
+</html>

@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, url_for, flash
 from flask_jwt_extended import (
     JWTManager,
     create_access_token,
@@ -9,12 +9,21 @@ from flask_jwt_extended import (
     unset_jwt_cookies,
 )
 from datetime import timedelta
+import openai
+from openai.types.responses.container_auto_param import Skill
 import pyargon2, string
 from sqlite3 import Connection
 from hashlib import sha1
+from pydantic_core.core_schema import multi_host_url_schema
 import requests, uuid
 import random
 import pyotp, dotenv, os, binascii
+import openaiapi
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
+from tempfile import TemporaryDirectory
+from openaiapi import SkillRankTable, SkillRankings
+from multiprocessing import Process
 
 _ = dotenv.load_dotenv()
 
@@ -24,7 +33,13 @@ app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_KEY", "please_change_this")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = ACCESS_EXPIRES
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
+app.config["JWT_CSRF_CHECK_FORM"] = True
+app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 10  # 10 mb
 jwt = JWTManager(app)
+
+engine = create_engine("sqlite+pysqlite:///user_skills.db")
+openaiapi.Base.metadata.create_all(engine)
+tmpdir = TemporaryDirectory()
 
 
 def passwd_hash(password: str, salt: str):
@@ -84,6 +99,57 @@ def index():
     if user is None:
         return render_template("index.html")
     return render_template("index.html", username=user[1], ssn=user[2])
+
+
+@app.route("/resume", methods=["GET"])
+@jwt_required()
+def resume_upload_page():
+    user = get_current_user()
+    with Session(engine) as session:
+        stmt = select(SkillRankTable).where(SkillRankTable.user_id == user[0])
+        try:
+            user_skills = session.scalars(stmt).one()
+        except:
+            return render_template("resume.html")
+        if user_skills.done_processing:
+            skill_rankings = SkillRankings.model_validate_json(user_skills.skills)
+            return render_template("resume_view.html", rankings=skill_rankings.skills)
+        else:
+            return render_template("resume_wait.html")
+
+    return render_template("resume.html")
+
+
+@app.route("/resume", methods=["POST"])
+@jwt_required()
+def resume_submit():
+    user = get_current_user()
+    if "resume" not in request.files:
+        flash("No file in request")
+        return render_template("resume.html")
+    file = request.files["resume"]
+    if file.filename == "":
+        flash("Resume not selected")
+        return render_template("resume.html")
+    if file and file.filename.rsplit(".", 1)[1].lower() == "pdf":
+        filename = (
+            tmpdir.name + "/" + binascii.b2a_hex(user[0]).decode("ascii") + ".pdf"
+        )
+        file.save(filename)
+        with Session(engine) as session:
+            stmt = select(SkillRankTable).where(SkillRankTable.user_id == user[0])
+            try:
+                user_skills = session.scalars(stmt).one()
+            except:
+                user_skills = SkillRankTable(
+                    user_id=user[0], skills="{}", done_processing=False
+                )
+            session.add(user_skills)
+            session.commit()
+        p = Process(target=openaiapi.update_skill_db(user[0], engine, filename))
+        p.start()
+        return render_template("resume_wait.html")
+    return render_template("resume.html")
 
 
 @app.get("/login")
