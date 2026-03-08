@@ -34,7 +34,7 @@ app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_KEY", "please_change_this")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = ACCESS_EXPIRES
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 app.config["JWT_CSRF_CHECK_FORM"] = True
-app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 10  # 10 mb
+app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1  # 1 mb
 jwt = JWTManager(app)
 
 engine = create_engine("sqlite+pysqlite:///user_skills.db")

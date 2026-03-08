@@ -9,12 +9,20 @@
 
 <body>
     <a href="/">back to ssn page</a>
-    <h1>Skill Info</h1>
-    <ul>
-        {% for skill in rankings %}
-        <li>{{ skill.skill_name }}: {{ skill.proficiency_level }}/4</li>
-        {% endfor %}
-    </ul>
+    <p>Resume succesfully parsed. Upload another below:</p>
+    <form method="POST" enctype="multipart/form-data" id="resume-upload">
+        <input type="file" name="resume" id="resume" />
+        <input type="submit" value="Upload Resume" />
+    </form>
+</body>
+
+<script src="/static/add_csrf_to_form.js"></script>
+<h1>Skill Info</h1>
+<ul>
+    {% for skill in rankings %}
+    <li>{{ skill.skill_name }}: {{ skill.proficiency_level }}/4</li>
+    {% endfor %}
+</ul>
 </body>
 
 </html>
